@@ -1,0 +1,12 @@
+torch
+torchvision
+# transformers
+# flash-attn
+accelerate
+Pillow
+pdf2image
+qwen-vl-utils[decord]
+bitsandbytes
+openai
+python-dotenv
+pdfminer.six
