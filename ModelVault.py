@@ -1,9 +1,10 @@
 import os
+import sys
 import warnings
 from typing import List
 from DataProcess import clean_output, TEMP_ENV_FILE
 # OpenAI model imports
-from openai import OpenAI, AuthenticationError
+from openai import OpenAI, AuthenticationError, APIConnectionError
 # Qwen Model imports
 from qwen_vl_utils import process_vision_info
 from transformers import (
@@ -139,10 +140,13 @@ class OpenAIModel:
                 model=self.model,
                 messages=messages
             )
-        except AuthenticationError as e:
-            print("Sorry, the OpenAI API key seems incorrect.")
+        except (AuthenticationError, APIConnectionError) as e:
+            print(
+                "Sorry, the OpenAI API key seems incorrect "
+                "or there is a connection error. Please try again."
+            )
             os.remove(TEMP_ENV_FILE) if os.path.exists(TEMP_ENV_FILE) else None
-            return {}
+            sys.exit()
 
         clean_response = clean_output(
             dirty_json=response.choices[0].message.content
