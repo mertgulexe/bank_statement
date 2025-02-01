@@ -42,10 +42,10 @@ if chosen_model == '1':
     messages = qwen_chat_template(file_path=PATH_TO_PDF)
     model = QwenModel()
 elif chosen_model == '2':
+    messages = openai_chat_template(file_path=PATH_TO_PDF)
     if is_env_loaded:
         OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     else:
-        messages = openai_chat_template(file_path=PATH_TO_PDF)
         OPENAI_API_KEY = input(
             "\nPlease enter the OPENAI_API_KEY "
             "(the key will be saved locally and the screen will be cleared "
