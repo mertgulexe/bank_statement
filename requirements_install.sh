@@ -1,5 +1,6 @@
 #!/bin/bash
 
+clear
 echo "[SYSTEM INFO] Installing the requirements..."
 sleep 2
 pip install git+https://github.com/huggingface/transformers --no-cache-dir
