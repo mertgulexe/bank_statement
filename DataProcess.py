@@ -79,6 +79,82 @@ SYSTEM_PROMPT = (
 )
 
 
+def clean_output(dirty_json: str) -> dict:
+    """
+    Cleans the LLM output to form a proper json.
+    
+    Args:
+        dirty_json (str): Text created by the LLM model.
+    Returns:
+        clean_json (dict): Cleaned output.
+    """
+    # Clean the markdown output
+    clean_json = dirty_json\
+        .replace("```json\n", '')\
+        .replace("\n```", '')
+    try:
+        clean_json = json.loads(s=clean_json)
+        if not clean_json["isBankStatement"]:
+            return json.loads(s=JSON_FORMAT)
+        return clean_json
+    except json.JSONDecodeError as e:
+        print("[SYSTEM INFO] The output is not a valid JSON. Please try again.")
+        return {}
+
+
+def parse_pdf(file_path: str) -> Image:
+    """
+    Gets the pdf file path and converts it to images.
+    Also, extract its metadata.
+    
+    Args:
+        pdf_file_path (str): Path to the pdf file.
+    Returns:
+        tuple(Image, dict): Tuple of image file transformed from pdf and its metadata.
+    """
+    # creates a temporary folder to keep the digested pdf file
+    with tempfile.TemporaryDirectory() as temp_folder:
+        imgs = pdf2image.convert_from_path(
+            pdf_path=file_path,
+            output_folder=temp_folder
+        )
+    return (imgs[0].convert("RGB"), extract_metadata(file_path))
+
+
+def extract_metadata(file_path: str) -> dict:
+    """
+    Extract metadata from a pdf file.
+
+    Args:
+        file_path (str): Path to pdf file.
+
+    Returns:
+        metadata (dict): Metadata extracted from pdf file.
+    """
+    with open(file=file_path, mode="rb") as pdf:
+        parser = PDFParser(fp=pdf)
+        pdf_doc = PDFDocument(parser=parser)
+        metadata = pdf_doc.info[0]
+        try:
+            # "CreationDate" and "ModDate" (Modified Date) are not in human-readable format.
+            # Let's convert them for ease of use. e.g., b"D:20060308133638-06'00'" ---> "2006-03-08 13:36:38"
+            creation_date = metadata["CreationDate"].decode("utf-8")[2:][:14]
+            mod_date = metadata["ModDate"].decode("utf-8")[2:][:14]
+
+            # convert to propert datetime format and overwrite the metadata values
+            creation_date = datetime.strptime(creation_date, "%Y%m%d%H%M%S")
+            mod_date = datetime.strptime(mod_date, "%Y%m%d%H%M%S")
+            metadata["CreationDate"] = creation_date.strftime("%Y-%m-%d %H:%M:%S")
+            metadata["ModDate"] = mod_date.strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+           print(
+               "[SYSTEM INFO] Dates in the metadata could not be converted to human "
+               "readable format. Most possibly the model will understand it."
+            )
+        finally:
+            return metadata
+
+
 def qwen_chat_template(file_path: str) -> List[dict]:
     """
     Gets the pdf file path, transforms it and creates the message template.
@@ -163,79 +239,3 @@ def openai_chat_template(file_path: str) -> List[dict]:
             ],
         }
     ]
-
-
-def clean_output(dirty_json: str) -> dict:
-    """
-    Cleans the LLM output to form a proper json.
-    
-    Args:
-        dirty_json (str): Text created by the LLM model.
-    Returns:
-        clean_json (dict): Cleaned output.
-    """
-    # Clean the markdown output
-    clean_json = dirty_json\
-        .replace("```json\n", '')\
-        .replace("\n```", '')
-    try:
-        clean_json = json.loads(s=clean_json)
-        if not clean_json["isBankStatement"]:
-            return json.loads(s=JSON_FORMAT)
-        return clean_json
-    except json.JSONDecodeError as e:
-        print("[SYSTEM INFO] The output is not a valid JSON. Please try again.")
-        return {}
-
-
-def parse_pdf(file_path: str) -> Image:
-    """
-    Gets the pdf file path and converts it to images.
-    Also, extract its metadata.
-    
-    Args:
-        pdf_file_path (str): Path to the pdf file.
-    Returns:
-        tuple(Image, dict): Tuple of image file transformed from pdf and its metadata.
-    """
-    # creates a temporary folder to keep the digested pdf file
-    with tempfile.TemporaryDirectory() as temp_folder:
-        imgs = pdf2image.convert_from_path(
-            pdf_path=file_path,
-            output_folder=temp_folder
-        )
-    return (imgs[0].convert("RGB"), extract_metadata(file_path))
-
-
-def extract_metadata(file_path: str) -> dict:
-    """
-    Extract metadata from a pdf file.
-
-    Args:
-        file_path (str): Path to pdf file.
-
-    Returns:
-        metadata (dict): Metadata extracted from pdf file.
-    """
-    with open(file=file_path, mode="rb") as pdf:
-        parser = PDFParser(fp=pdf)
-        pdf_doc = PDFDocument(parser=parser)
-        metadata = pdf_doc.info[0]
-        try:
-            # "CreationDate" and "ModDate" (Modified Date) are not in human readable format.
-            # Let's convert them for ease of use. e.g., b"D:20060308133638-06'00'" ---> "2006-03-08 13:36:38"
-            creation_date = metadata["CreationDate"].decode("utf-8")[2:][:14]
-            mod_date = metadata["ModDate"].decode("utf-8")[2:][:14]
-
-            # convert to propert datetime format and overwrite the metadata values
-            creation_date = datetime.strptime(creation_date, "%Y%m%d%H%M%S")
-            mod_date = datetime.strptime(mod_date, "%Y%m%d%H%M%S")
-            metadata["CreationDate"] = creation_date.strftime("%Y-%m-%d %H:%M:%S")
-            metadata["ModDate"] = mod_date.strftime("%Y-%m-%d %H:%M:%S")
-        except ValueError:
-           print(
-               "[SYSTEM INFO] Dates in the metadata could not be converted to human "
-               "readable format. Most possibly the model will understand it."
-            )
-        finally:
-            return metadata
