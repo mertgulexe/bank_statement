@@ -63,9 +63,9 @@ else:
 
 # final output
 json_output = model.generate(messages=messages)
-# delete unnecessary keys
-del json_output["bank_name"]
-del json_output["bank_address"]
+# delete unnecessary keys. They were added to help LLM to distinguish the requested info.
+json_output.pop("bank_name", None)
+json_output.pop("bank_address", None)
 
-print("Output:")
+print("\nOutput:")
 print(json.dumps(obj=json_output, indent=4))
