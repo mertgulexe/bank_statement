@@ -1,7 +1,7 @@
 # Bank Statement AI Parser
 ## 1. Overview
 This parser is an LLM-powered CLI designed to parse a bank statement PDF file and extract key information such as account details and transaction data, while also detecting any fraudulent activities. It also supports two different models:
-* `Qwen2-VL-2B`: A free model that leads the VQA (Visual Question Answering) benchmarks.
+* `Qwen2-VL-2B`: A free model that leads the VQA (Visual Question Answering) benchmarks for open-source models.
 * `gpt-4o-mini`: A paid but higher performance model that requires an API key.
 
 The output format is a JSON object, and an example is shown below:
