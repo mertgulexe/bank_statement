@@ -58,17 +58,13 @@ class QwenModel:
             pretrained_model_name_or_path=processor_name
         )
 
-    def generate(
-            self,
-            messages: List[dict],
-            max_new_tokens: int = 256
-    ) -> dict:
+    def generate(self, messages: List[dict], max_new_tokens: int = 256) -> dict:
         """
         Generates a response based on the provided messages and bank statement pdf file.
         
         Args:
             messages (List[dict]): A list of messages in the chat template format.
-            max_new_tokens (int): Maximum number of new tokens to generate. Default is 512.
+            max_new_tokens (int): Maximum number of new tokens to generate. Default is 256.
         
         Returns:
             dict: A json response contains information from the bank statement.
@@ -125,12 +121,13 @@ class OpenAIModel:
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def generate(self, messages: List[dict]) -> dict:
+    def generate(self, messages: List[dict], max_new_tokens: int = 256) -> dict:
         """
         Generates a response based on the provided messages.
         
         Args:
             messages (List[dict]): A list of messages in the chat template format.
+            max_new_tokens (int): Maximum number of new tokens to generate. Default is 256.
         
         Returns:
             dict: A json response contains information from the bank statement.
@@ -138,7 +135,8 @@ class OpenAIModel:
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=messages
+                messages=messages,
+                max_completion_tokens=max_new_tokens
             )
         except (AuthenticationError, APIConnectionError) as e:
             print(
