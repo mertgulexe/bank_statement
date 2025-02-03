@@ -18,7 +18,7 @@ The output format is a JSON object, and an example is shown below:
 ```
 
 ## 2. Design Environment
-- **Python Version**: 3.12
+- **Python Versions Tested**: `3.12.3` and `3.13.1`
 - **Operating System**: Ubuntu 24.04.1 LTS
 - **GPU**: NVIDIA GeForce RTX 4070 [Laptop]
     - **Memory**: 8 GB
